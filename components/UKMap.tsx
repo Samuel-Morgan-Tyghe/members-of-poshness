@@ -63,10 +63,10 @@ const UKMap: React.FC<UKMapProps> = ({ regions }) => {
       {/* Legend */}
       <div className="absolute bottom-4 right-4 bg-white/90 p-3 rounded-lg shadow text-xs backdrop-blur-sm border border-slate-100">
         <div className="font-bold mb-2 text-slate-700">Posh Level</div>
-        <div className="flex items-center gap-2 mb-1"><div className="w-3 h-3 bg-purple-500 rounded-sm"></div>High (>70)</div>
+        <div className="flex items-center gap-2 mb-1"><div className="w-3 h-3 bg-purple-500 rounded-sm"></div>High (&gt;70)</div>
         <div className="flex items-center gap-2 mb-1"><div className="w-3 h-3 bg-orange-400 rounded-sm"></div>Med-High</div>
         <div className="flex items-center gap-2 mb-1"><div className="w-3 h-3 bg-yellow-400 rounded-sm"></div>Medium</div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-green-400 rounded-sm"></div>Low (<40)</div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 bg-green-400 rounded-sm"></div>Low (&lt;40)</div>
       </div>
 
       {/* Tooltip */}

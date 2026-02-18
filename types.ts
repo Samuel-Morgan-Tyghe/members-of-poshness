@@ -29,12 +29,7 @@ export interface RegionStats {
   notableConstituency: string;
 }
 
-export interface NotableMP {
-  name: string;
-  party: string;
-  poshScore: number;
-  reason: string;
-}
+// NotableMP interface is removed in favor of using full MPProfile
 
 export interface GlobalStats {
   parties: PartyStats[];
@@ -42,7 +37,7 @@ export interface GlobalStats {
   totalPrivateSchool: number;
   totalOxbridge: number;
   summary: string;
-  notableMPs: NotableMP[];
+  notableMPs: MPProfile[];
 }
 
 export enum LoadingState {

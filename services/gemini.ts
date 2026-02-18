@@ -1,7 +1,6 @@
-import { GoogleGenAI, Type, type Schema } from "@google/genai";
 import { MPProfile, GlobalStats } from "../types";
 
-// Static data based on 2024 General Election analysis
+// Enhanced Static data based on 2024 General Election analysis
 const STATIC_STATS: GlobalStats = {
   parties: [
     { partyName: "Conservative", privateSchoolPercent: 46, oxbridgePercent: 38, avgPoshScore: 82, color: "#0087DC" },
@@ -25,125 +24,136 @@ const STATIC_STATS: GlobalStats = {
   totalOxbridge: 19,
   summary: "Following the 2024 General Election, the House of Commons is less privately educated than at any point in history. However, a significant class divide remains, with Conservatives still disproportionately drawn from fee-paying schools compared to the Labour intake.",
   notableMPs: [
-    { name: "Rishi Sunak", party: "Conservative", poshScore: 94, reason: "Head Boy at Winchester College, Oxford PPE, Goldman Sachs, and a billionaire heiress wife." },
-    { name: "Nigel Farage", party: "Reform UK", poshScore: 85, reason: "Dulwich College alumnus and commodities trader who plays the man of the people." },
-    { name: "Ed Davey", party: "Lib Dem", poshScore: 72, reason: "Nottingham High School (Private) and Oxford. A quiet, classic establishment background." },
-    { name: "Keir Starmer", party: "Labour", poshScore: 68, reason: "Reigate Grammar (selective/private), Leeds, and Oxford post-grad. A knight of the realm." },
-    { name: "Victoria Atkins", party: "Conservative", poshScore: 88, reason: "Daughter of a Sir, Arnold School (Private), Cambridge, and a barrister." },
-    { name: "Jess Phillips", party: "Labour", poshScore: 25, reason: "Comprehensive school, University of Leeds, and worked in business development." },
-    { name: "Lee Anderson", party: "Reform UK", poshScore: 15, reason: "Coal miner's son, state educated, and worked in the pits himself." },
-    { name: "Angela Rayner", party: "Labour", poshScore: 10, reason: "Left school at 16, care worker, trade unionist. The antithesis of the old boys' club." }
+    {
+      name: "Rishi Sunak",
+      party: "Conservative",
+      constituency: "Richmond and Northallerton",
+      education: {
+        secondary: "Winchester College",
+        university: "Lincoln College, Oxford",
+        schoolType: "Private"
+      },
+      previousJobs: ["Goldman Sachs Analyst", "Hedge Fund Partner"],
+      poshScore: 94,
+      poshAnalysis: "Head Boy at Winchester College, Oxford PPE, Goldman Sachs, and married to a billionaire heiress. He's so establishment he probably dreams in Latin.",
+      netWorthEstimate: "£650 Million (Household)"
+    },
+    {
+      name: "Nigel Farage",
+      party: "Reform UK",
+      constituency: "Clacton",
+      education: {
+        secondary: "Dulwich College",
+        university: "N/A",
+        schoolType: "Private"
+      },
+      previousJobs: ["Commodities Trader"],
+      poshScore: 85,
+      poshAnalysis: "A Dulwich College alumnus and former commodities trader who somehow convinced the nation he's just an ordinary bloke down the pub. A masterclass in 'Posh Populism'.",
+      netWorthEstimate: "£3 Million"
+    },
+    {
+      name: "Keir Starmer",
+      party: "Labour",
+      constituency: "Holborn and St Pancras",
+      education: {
+        secondary: "Reigate Grammar School",
+        university: "University of Leeds, Oxford",
+        schoolType: "Grammar"
+      },
+      previousJobs: ["Human Rights Lawyer", "Director of Public Prosecutions"],
+      poshScore: 68,
+      poshAnalysis: "Attended a selective grammar school followed by Leeds and Oxford. He's a Knight of the Realm and former DPP—certainly posh, but in a very 'high-achieving lawyer' kind of way.",
+      netWorthEstimate: "£3 Million"
+    },
+    {
+      name: "Angela Rayner",
+      party: "Labour",
+      constituency: "Ashton-under-Lyne",
+      education: {
+        secondary: "Avondale School (State)",
+        university: "N/A",
+        schoolType: "State"
+      },
+      previousJobs: ["Care Worker", "Trade Union Representative"],
+      poshScore: 10,
+      poshAnalysis: "Left school at 16 while pregnant, with no qualifications. She's worked her way up through the trade unions. The absolute antithesis of the Eton-to-Oxbridge pipeline.",
+      netWorthEstimate: "MP Salary"
+    },
+    {
+      name: "Ed Davey",
+      party: "Lib Dem",
+      constituency: "Kingston and Surbiton",
+      education: {
+        secondary: "Nottingham High School",
+        university: "Jesus College, Oxford",
+        schoolType: "Private"
+      },
+      previousJobs: ["Management Consultant"],
+      poshScore: 72,
+      poshAnalysis: "Private school, Oxford, and management consultancy. It's a classic, understated poshness that doesn't shout, but definitely attended all the right garden parties.",
+      netWorthEstimate: "£1.5 Million"
+    },
+    {
+      name: "Victoria Atkins",
+      party: "Conservative",
+      constituency: "Louth and Horncastle",
+      education: {
+        secondary: "Arnold School",
+        university: "Corpus Christi College, Cambridge",
+        schoolType: "Private"
+      },
+      previousJobs: ["Criminal Barrister"],
+      poshScore: 88,
+      poshAnalysis: "The daughter of a Knight (Sir Robert Atkins), private school, Cambridge, and a career as a high-flying barrister. Quintessentially Blue-blooded.",
+      netWorthEstimate: "Significant"
+    },
+    {
+      name: "Lee Anderson",
+      party: "Reform UK",
+      constituency: "Ashfield",
+      education: {
+        secondary: "Ashfield School (State)",
+        university: "N/A",
+        schoolType: "State"
+      },
+      previousJobs: ["Coal Miner"],
+      poshScore: 15,
+      poshAnalysis: "A coal miner's son who worked in the pits himself. His score is bolstered slightly by his MP salary, but his roots are as deep-set working class as it gets.",
+      netWorthEstimate: "MP Salary"
+    }
   ]
 };
 
-const mpSchema: Schema = {
-  type: Type.OBJECT,
-  properties: {
-    name: { type: Type.STRING, description: "Full name of the MP" },
-    party: { type: Type.STRING, description: "Political Party (e.g., Conservative, Labour)" },
-    constituency: { type: Type.STRING, description: "The constituency they represent" },
+export const analyzeMP = async (input: string, _isLocation: boolean = false): Promise<MPProfile> => {
+  // Client-side search for the hardcoded MPs
+  const normalizedInput = input.toLowerCase().trim();
+
+  const match = STATIC_STATS.notableMPs.find(mp =>
+    mp.name.toLowerCase().includes(normalizedInput) ||
+    normalizedInput.includes(mp.name.toLowerCase()) ||
+    mp.constituency.toLowerCase().includes(normalizedInput)
+  );
+
+  if (match) {
+    return Promise.resolve(match as MPProfile);
+  }
+
+  // Fallback "Generic" profile if no match is found
+  return Promise.resolve({
+    name: input,
+    party: "Unknown",
+    constituency: "Unknown",
     education: {
-      type: Type.OBJECT,
-      properties: {
-        secondary: { type: Type.STRING, description: "Name of secondary school attended" },
-        university: { type: Type.STRING, description: "University and College attended (if any)" },
-        schoolType: { type: Type.STRING, description: "One of: Private, Grammar, State, Unknown" },
-      },
-      required: ["secondary", "university", "schoolType"]
+      secondary: "Unknown School",
+      university: "Unknown University",
+      schoolType: "Unknown"
     },
-    previousJobs: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
-      description: "List of significant jobs before becoming an MP"
-    },
-    poshScore: {
-      type: Type.NUMBER,
-      description: "A calculated score from 0 (Working class) to 100 (Aristocratic) based on education, wealth, and background."
-    },
-    poshAnalysis: {
-      type: Type.STRING,
-      description: "A witty, satirical, yet factual paragraph explaining why they received this score."
-    },
-    netWorthEstimate: {
-      type: Type.STRING,
-      description: "A broad estimate of wealth or notable financial background info if available (e.g., 'Multi-millionaire', 'Standard MP Salary')."
-    }
-  },
-  required: ["name", "party", "education", "poshScore", "poshAnalysis"]
-};
-
-let aiInstance: GoogleGenAI | null = null;
-
-const getAI = () => {
-  if (!aiInstance) {
-    aiInstance = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  }
-  return aiInstance;
-};
-
-export const analyzeMP = async (input: string, isLocation: boolean = false): Promise<MPProfile> => {
-  const ai = getAI();
-  const model = "gemini-3-pro-preview"; 
-  
-  let prompt;
-  if (isLocation) {
-    prompt = `
-      First, identify the current UK Member of Parliament for the location or coordinates: "${input}".
-      If it is a city name, pick the most prominent constituency. 
-      Then, find detailed background information for that specific MP.
-      
-      Focus on their educational history (High school/College), University, and pre-parliamentary career.
-      Determine if their school was Private (Fee-paying), Grammar (Selective State), or State (Comprehensive).
-      
-      Calculate a "Posh Score" (0-100) based on:
-      - Attending Eton, Harrow, Winchester, etc. (+40 points)
-      - Attending any other Private School (+20 points)
-      - Attending Oxbridge (+30 points)
-      - Working in Finance, Law, or consulting (+10 points)
-      - Hereditary titles or wealthy background (+20 points)
-      - Subtract points for State school, working class roots, trade union background.
-      
-      Be factual but write the 'poshAnalysis' in a witty, slightly satirical tone appropriate for a site called "Members of Posh".
-    `;
-  } else {
-    prompt = `
-      Find detailed background information for the UK Member of Parliament (MP) named "${input}".
-      Focus on their educational history (High school/College), University, and pre-parliamentary career.
-      
-      Determine if their school was Private (Fee-paying), Grammar (Selective State), or State (Comprehensive).
-      
-      Calculate a "Posh Score" (0-100) based on:
-      - Attending Eton, Harrow, Winchester, etc. (+40 points)
-      - Attending any other Private School (+20 points)
-      - Attending Oxbridge (+30 points)
-      - Working in Finance, Law, or consulting (+10 points)
-      - Hereditary titles or wealthy background (+20 points)
-      - Subtract points for State school, working class roots, trade union background.
-      
-      Be factual but write the 'poshAnalysis' in a witty, slightly satirical tone appropriate for a site called "Members of Posh".
-    `;
-  }
-
-  try {
-    const response = await ai.models.generateContent({
-      model,
-      contents: prompt,
-      config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: mpSchema,
-        thinkingConfig: { thinkingBudget: 1024 }
-      }
-    });
-
-    const text = response.text;
-    if (!text) throw new Error("No response from AI");
-    
-    return JSON.parse(text) as MPProfile;
-  } catch (error) {
-    console.error("Error analyzing MP:", error);
-    throw error;
-  }
+    previousJobs: ["Unknown"],
+    poshScore: 50,
+    poshAnalysis: "We couldn't find this specific MP in our hardcoded archives! They are currently maintaining a mysterious level of poshness of exactly 50.",
+    netWorthEstimate: "Unknown"
+  } as MPProfile);
 };
 
 export const getGeneralStats = async (): Promise<GlobalStats> => {
